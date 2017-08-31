@@ -6,7 +6,8 @@
 /datum/organ/internal/lungs
 	name = "lungs"
 	parent_organ = LIMB_CHEST
-	removed_type = /obj/item/organ/lungs
+	organ_type = "lungs"
+	removed_type = /obj/item/organ/internal/lungs
 
 	min_bruised_damage = 8
 	min_broken_damage = 15
@@ -92,17 +93,19 @@
 			owner.audible_cough()		//respitory tract infection
 
 	if(is_bruised())
-		if(prob(((damage-min_bruised_damage)/min_broken_damage)*100))
+		var/chance = min(50, (damage-min_bruised_damage)/min_broken_damage*50)
+		if(prob(chance))
+			spawn owner.emote("me", 1, "gasps for air!")
+			if (owner.losebreath <= 30)
+				owner.losebreath += 5
+		else if(prob(chance))
 			spawn owner.emote("me", 1, "coughs up blood!")
 			owner.drip(10)
-		if(prob(((damage-min_bruised_damage)/min_broken_damage)*150))
-			spawn owner.emote("me", 1, "gasps for air!")
-			owner.losebreath += 5
 
 
 /datum/organ/internal/lungs/vox
 	name = "\improper Vox lungs"
-	removed_type = /obj/item/organ/lungs/vox
+	removed_type = /obj/item/organ/internal/lungs/vox
 
 	gasses = list(
 		new /datum/lung_gas/metabolizable("nitrogen",          min_pp=16, max_pp=140),
@@ -114,7 +117,7 @@
 
 /datum/organ/internal/lungs/plasmaman
 	name = "\improper Plasmaman lungs"
-	removed_type = /obj/item/organ/lungs/plasmaman
+	removed_type = /obj/item/organ/internal/lungs/plasmaman
 
 	gasses = list(
 		new /datum/lung_gas/metabolizable("toxins", min_pp=16, max_pp=140),

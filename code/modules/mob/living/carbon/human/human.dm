@@ -75,6 +75,10 @@
 	h_style = "Bald"
 	..(new_loc, "Slime")
 
+/mob/living/carbon/human/NPC/New(var/new_loc, delay_ready_dna = 0)
+	..(new_loc)
+	initialize_basic_NPC_components()
+
 /mob/living/carbon/human/frankenstein/New(var/new_loc, delay_ready_dna = 0) //Just fuck my shit up: the mob
 	f_style = pick(facial_hair_styles_list)
 	h_style = pick(hair_styles_list)
@@ -174,6 +178,7 @@
 
 	if(dna)
 		dna.real_name = real_name
+		dna.flavor_text = flavor_text
 
 	prev_gender = gender // Debug for plural genders
 	make_blood()
@@ -246,7 +251,7 @@
 
 		if(istype(loc, /obj/spacepod)) // Spacdpods!
 			var/obj/spacepod/S = loc
-			stat("Spacepod Charge", "[istype(S.battery) ? "[(S.battery.charge / S.battery.maxcharge) * 100]" : "No cell detected"]")
+			stat("Spacepod Charge", "[istype(S.battery) ? "[S.battery.charge] / [S.battery.maxcharge]" : "No cell detected"]")
 			stat("Spacepod Integrity", "[!S.health ? "0" : "[(S.health / initial(S.health)) * 100]"]%")
 
 /mob/living/carbon/human/attack_animal(mob/living/simple_animal/M as mob)
@@ -976,7 +981,7 @@
 
 	var/datum/organ/internal/brain/BBrain = internal_organs_by_name["brain"]
 	if(!BBrain)
-		var/obj/item/weapon/organ/head/B = decapitated
+		var/obj/item/organ/external/head/B = decapitated
 		if(B)
 			var/datum/organ/internal/brain/copied
 			if(B.organ_data)
@@ -1479,7 +1484,7 @@
 				step_towards(I, src)
 				to_chat(src, "<span class = 'warning'>\The [S] pulls \the [I] from your grip!</span>")
 	if(radiations)
-		apply_effect(current_size * radiations, IRRADIATE)
+		apply_radiation(current_size * radiations, RAD_EXTERNAL)
 	if(shoes)
 		if(shoes.clothing_flags & NOSLIP && current_size <= STAGE_FOUR)
 			return 0
@@ -1516,6 +1521,14 @@
 		to_chat(src, "<i>[pick(boo_phrases)]</i>")
 	else
 		to_chat(src, "<b><font color='[pick("red","orange","yellow","green","blue")]'>[pick(boo_phrases_drugs)]</font></b>")
+
+/mob/living/carbon/human/proc/seizure(paralyse_duration = 10, jitter_duration = 1000)
+	forcesay(epilepsy_appends)
+	visible_message("<span class='danger'>\The [src] starts having a seizure!</span>", \
+					"<span class='warning'>You have a seizure!</span>", \
+					drugged_message = "<span class='info'>\The [src] starts raving.</span>")
+	Paralyse(paralyse_duration)
+	Jitter(jitter_duration)
 
 // Makes all robotic limbs organic.
 /mob/living/carbon/human/proc/make_robot_limbs_organic()
@@ -1673,45 +1686,50 @@ mob/living/carbon/human/isincrit()
 	if (health - halloss <= config.health_threshold_softcrit)
 		return 1
 
-/mob/living/carbon/human/drag_damage()
+/mob/living/carbon/human/get_broken_organs()
 	var/mob/living/carbon/human/H = src
-	var/turf/TH = H.loc
 	var/list/return_organs = list()
-	if (TH.has_gravity() && H.lying)
-		for(var/datum/organ/external/damagedorgan in H.organs)
-			if(damagedorgan.status & ORGAN_BROKEN && !(damagedorgan.status & ORGAN_SPLINTED) || damagedorgan.status & ORGAN_BLEEDING)
-				return_organs += damagedorgan
-		return return_organs
+	for(var/datum/organ/external/damagedorgan in H.organs)
+		if(damagedorgan.status & ORGAN_BROKEN && !(damagedorgan.status & ORGAN_SPLINTED))
+			return_organs += damagedorgan
+	return return_organs
 
-/mob/living/carbon/human/get_heart()	
+/mob/living/carbon/human/get_bleeding_organs()
+	var/mob/living/carbon/human/H = src
+	var/list/return_organs = list()
+	for(var/datum/organ/external/damagedorgan in H.organs)
+		if(damagedorgan.status & ORGAN_BLEEDING)
+			return_organs += damagedorgan
+	return return_organs
+
+/mob/living/carbon/human/get_heart()
 	return internal_organs_by_name["heart"]
-	
+
 //Moved from internal organ surgery
 //Removes organ from src, places organ object under user
-//example: H.remove_internal_organ(H,internal_organs_by_name["heart"],H.get_organ(LIMB_CHEST))
+//example: H.remove_internal_organ(H,H.internal_organs_by_name["heart"],H.get_organ(LIMB_CHEST))
 mob/living/carbon/human/remove_internal_organ(var/mob/living/user, var/datum/organ/internal/targetorgan, var/datum/organ/external/affectedarea)
-	var/obj/item/organ/extractedorgan
-
+	var/obj/item/organ/internal/extractedorgan
 	if(targetorgan && istype(targetorgan))
 		extractedorgan = targetorgan.remove(user) //The organ that comes out at the end
 		if(extractedorgan && istype(extractedorgan))
-
 			// Stop the organ from continuing to reject.
 			extractedorgan.organ_data.rejecting = null
 
 			// Transfer over some blood data, if the organ doesn't have data.
 			var/datum/reagent/blood/organ_blood = extractedorgan.reagents.reagent_list[BLOOD]
+			var/organstring = targetorgan.organ_type
 			if(!organ_blood || !organ_blood.data["blood_DNA"])
 				vessel.trans_to(extractedorgan, 5, 1, 1)
-			
-			internal_organs_by_name[targetorgan.name] = null
-			internal_organs_by_name -= targetorgan.name
+
+			internal_organs_by_name[organstring] = null
+			internal_organs_by_name -= organstring
 			internal_organs -= extractedorgan.organ_data
 			affectedarea.internal_organs -= extractedorgan.organ_data
 			extractedorgan.removed(src,user)
-			
+
 			return extractedorgan
-		
+
 /mob/living/carbon/human/feels_pain()
 	if(!species)
 		return FALSE
@@ -1818,3 +1836,15 @@ mob/living/carbon/human/remove_internal_organ(var/mob/living/user, var/datum/org
 	if(M_HULK in mutations)
 		return image(icon = 'icons/mob/attackanims.dmi', icon_state = "hulk")
 	else return image(icon = 'icons/mob/attackanims.dmi', icon_state = "default")
+
+/mob/living/carbon/human/proc/initialize_barebones_NPC_components()	//doesn't actually do anything, but contains tools needed for other types to do things
+	NPC_brain = new (src)
+	NPC_brain.AddComponent(/datum/component/controller/mob)
+	NPC_brain.AddComponent(/datum/component/ai/hand_control)
+
+/mob/living/carbon/human/proc/initialize_basic_NPC_components()	//will wander around
+	initialize_barebones_NPC_components()
+	NPC_brain.AddComponent(/datum/component/ai/human_brain)
+	NPC_brain.AddComponent(/datum/component/ai/target_finder/human)
+	NPC_brain.AddComponent(/datum/component/ai/target_holder/prioritizing)
+	NPC_brain.AddComponent(/datum/component/ai/melee/attack_human)

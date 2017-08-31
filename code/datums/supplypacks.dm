@@ -114,6 +114,14 @@ var/list/all_supply_groups = list("Supplies","Clothing","Security","Hospitality"
 	containername = "janitorial supplies crate"
 	group = "Supplies"
 
+/datum/supply_packs/trashcompactor
+	name = "Trash compactor"
+	contains = list(/obj/machinery/disposal/compactor/unplugged)
+	cost = 100
+	containertype = /obj/structure/largecrate
+	containername = "trash compactor crate"
+	group = "Supplies"
+
 /datum/supply_packs/lightbulbs
 	name = "Replacement lights"
 	contains = list(/obj/item/weapon/storage/box/lights/mixed,
@@ -858,48 +866,48 @@ var/list/all_supply_groups = list("Supplies","Clothing","Security","Hospitality"
 	containername = "security checkpoint crate"
 	group = "Security"
 
-/datum/supply_packs/fourtyfive
-	name = "NT USP pack"
+/datum/supply_packs/auto380
+	name = "NT Glock pack"
 	contains = list(/obj/item/weapon/gun/projectile/sec,
 					/obj/item/weapon/gun/projectile/sec,
-					/obj/item/voucher/free_item/hot_drink,
-					/obj/item/voucher/free_item/snack)
+					/obj/item/voucher/free_item/glockammo,
+					/obj/item/voucher/free_item/glockammo)
 	cost = 200
 	containertype = /obj/structure/closet/crate/secure/weapon
 	containername = ".45 pistols crate"
 	access = access_armory
 	group = "Security"
 
-/datum/supply_packs/fourtyfive/lethals
-	name = ".45 pistol lethal ammo"
-	contains = list(/obj/item/ammo_storage/box/c45,
-					/obj/item/ammo_storage/magazine/c45/empty,
-					/obj/item/ammo_storage/magazine/c45/empty,
-					/obj/item/ammo_storage/magazine/c45)
+/datum/supply_packs/auto380/lethals
+	name = "NT Glock lethal ammo"
+	contains = list(/obj/item/ammo_storage/box/b380auto,
+					/obj/item/ammo_storage/magazine/m380auto/empty,
+					/obj/item/ammo_storage/magazine/m380auto/empty,
+					/obj/item/ammo_storage/magazine/m380auto)
 	cost = 50
 	containertype = /obj/structure/closet/crate/secure/gear
 	containername = ".45 pistol lethal ammo crate"
 	access = access_armory
 	group = "Security"
 
-/datum/supply_packs/fourtyfive/practice
-	name = ".45 pistol practice ammo"
-	contains = list(/obj/item/ammo_storage/box/c45/practice,
-					/obj/item/ammo_storage/magazine/c45/practice/empty,
-					/obj/item/ammo_storage/magazine/c45/practice/empty,
-					/obj/item/ammo_storage/magazine/c45/practice)
+/datum/supply_packs/auto380/practice
+	name = "NT Glock practice ammo"
+	contains = list(/obj/item/ammo_storage/box/b380auto/practice,
+					/obj/item/ammo_storage/magazine/m380auto/practice/empty,
+					/obj/item/ammo_storage/magazine/m380auto/practice/empty,
+					/obj/item/ammo_storage/magazine/m380auto/practice)
 	cost = 10
 	containertype = /obj/structure/closet/crate/secure/gear
 	containername = ".45 pistol practice ammo crate"
 	access = access_security
 	group = "Security"
 
-/datum/supply_packs/fourtyfive/rubber
-	name = ".45 pistol rubber ammo"
-	contains = list(/obj/item/ammo_storage/box/c45/rubber,
-					/obj/item/ammo_storage/magazine/c45/rubber/empty,
-					/obj/item/ammo_storage/magazine/c45/rubber/empty,
-					/obj/item/ammo_storage/magazine/c45/rubber)
+/datum/supply_packs/auto380/rubber
+	name = "NT Glock rubber ammo"
+	contains = list(/obj/item/ammo_storage/box/b380auto/rubber,
+					/obj/item/ammo_storage/magazine/m380auto/rubber/empty,
+					/obj/item/ammo_storage/magazine/m380auto/rubber/empty,
+					/obj/item/ammo_storage/magazine/m380auto/rubber)
 	cost = 30
 	containertype = /obj/structure/closet/crate/secure/gear
 	containername = ".45 pistol rubber ammo crate"
@@ -1218,27 +1226,6 @@ var/list/all_supply_groups = list("Supplies","Clothing","Security","Hospitality"
 	containertype = /obj/structure/closet/crate/secure/engisec
 	containername = "particle accelerator crate"
 	access = access_ce
-	group = "Engineering"
-
-/datum/supply_packs/mecha_ripley
-	name = "\"Ripley\" APLU circuit board"
-	contains = list(/obj/item/weapon/book/manual/ripley_build_and_repair,
-					/obj/item/weapon/circuitboard/mecha/ripley/main, //TEMPORARY due to lack of circuitboard printer
-					/obj/item/weapon/circuitboard/mecha/ripley/peripherals) //TEMPORARY due to lack of circuitboard printer
-	cost = 30
-	containertype = /obj/structure/closet/crate/secure/scisec
-	containername = "\improper APLU \"Ripley\" circuit crate"
-	access = access_robotics
-	group = "Engineering"
-
-/datum/supply_packs/mecha_odysseus
-	name = "\"Odysseus\" circuit board"
-	contains = list(/obj/item/weapon/circuitboard/mecha/odysseus/peripherals, //TEMPORARY due to lack of circuitboard printer
-					/obj/item/weapon/circuitboard/mecha/odysseus/main) //TEMPORARY due to lack of circuitboard printer
-	cost = 25
-	containertype = /obj/structure/closet/crate/secure/scisec
-	containername = "\improper \"Odysseus\" circuit crate"
-	access = access_robotics
 	group = "Engineering"
 
 /datum/supply_packs/shieldgens
@@ -1771,6 +1758,14 @@ var/list/all_supply_groups = list("Supplies","Clothing","Security","Hospitality"
 	containername = "corgi Crate"
 	group = "Hydroponics"
 
+/datum/supply_packs/cat
+	name = "Cat"
+	contains = list()
+	cost = 30
+	containertype = /obj/structure/largecrate/cat
+	containername = "cat crate"
+	group = "Hydroponics"
+
 /datum/supply_packs/weedcontrol
 	name = "Weed control equipment"
 	contains = list(/obj/item/weapon/scythe,
@@ -1806,8 +1801,8 @@ var/list/all_supply_groups = list("Supplies","Clothing","Security","Hospitality"
 /datum/supply_packs/bee_keeper
 	name = "Beekeeping kit"
 	contains = list(
-		/obj/item/beezeez,
-		/obj/item/beezeez,
+		/obj/item/weapon/reagent_containers/food/snacks/beezeez,
+		/obj/item/weapon/reagent_containers/food/snacks/beezeez,
 		/obj/item/weapon/bee_net,
 		/obj/item/weapon/extinguisher/mini,
 		/obj/item/apiary,
@@ -1967,6 +1962,15 @@ var/list/all_supply_groups = list("Supplies","Clothing","Security","Hospitality"
 	cost = 15
 	containertype = /obj/structure/stackopacks
 	containername = "\improper Cosmetics stack of packs"
+	group = "Vending Machine packs"
+	
+/datum/supply_packs/offlicencemachines
+	name = "Off-Licence packs"
+	contains = list(/obj/structure/vendomatpack/offlicence,
+					/obj/structure/vendomatpack/offlicence)
+	cost = 15
+	containertype = /obj/structure/stackopacks
+	containername = "\improper Off-Licence stack of packs"
 	group = "Vending Machine packs"
 
 

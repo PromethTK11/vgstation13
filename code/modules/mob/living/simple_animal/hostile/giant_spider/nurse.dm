@@ -196,6 +196,7 @@ var/list/spider_queens = list()
 	projectiletype = /obj/item/projectile/web
 	projectilesound = 'sound/weapons/pierce.ogg'
 	ranged = 1
+	size = SIZE_HUGE
 
 /mob/living/simple_animal/hostile/giant_spider/nurse/queen_spider/New()
 	..()
@@ -213,7 +214,7 @@ var/list/spider_queens = list()
 	damage = 5
 	damage_type = BRUTE
 
-/obj/item/projectile/web/Bump(atom/A)
+/obj/item/projectile/web/to_bump(atom/A)
 	if(!(locate(/obj/effect/spider/stickyweb) in get_turf(src)))
 		new /obj/effect/spider/stickyweb(get_turf(src))
 	qdel(src)

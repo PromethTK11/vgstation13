@@ -30,13 +30,13 @@
 				switch(R.id)*/
 		viewcontents = 1
 		overlays.len = 0
+		flammable = 0
+		if(!molotov)
+			lit = 0
+		light_color = null
+		set_light(0)
 		if (reagents.reagent_list.len > 0)
 			//mrid = R.get_master_reagent_id()
-			flammable = 0
-			if(!molotov)
-				lit = 0
-			light_color = null
-			set_light(0)
 			isGlass = 1
 			item_state = "glass_empty"
 			switch(reagents.get_master_reagent_id())
@@ -409,7 +409,7 @@
 					icon_state = SOY_LATTE
 					item_state = SOY_LATTE
 					name = "soy latte"
-					desc = "A nice and refrshing beverage while you are reading."
+					desc = "A nice and refreshing beverage while you are reading."
 				if(CAFE_LATTE)
 					icon_state = CAFE_LATTE
 					item_state = CAFE_LATTE

@@ -54,7 +54,7 @@ would spawn and follow the beaker, even if it is carried or thrown.
 
 	.=..()
 
-/obj/effect/effect/water/Bump(atom/A)
+/obj/effect/effect/water/to_bump(atom/A)
 	if(reagents)
 		reagents.reaction(A)
 	return ..()
@@ -948,13 +948,13 @@ steam.start() -- spawns the effect
 
 /obj/structure/foamedmetal/proc/update_nearby_tiles()
 
-	if (isnull(air_master))
+	if (!SS_READY(SSair))
 		return 0
 
 	var/T = loc
 
 	if (isturf(T))
-		air_master.mark_for_update(T)
+		SSair.mark_for_update(T)
 
 	return 1
 

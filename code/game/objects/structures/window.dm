@@ -7,6 +7,8 @@
 #define WINDOWUNSECUREFRAME 2
 #define WINDOWSECURE 3
 
+var/list/one_way_windows
+
 /obj/structure/window
 	name = "window"
 	desc = "A silicate barrier, used to keep things out and in sight. Fragile."
@@ -27,6 +29,7 @@
 
 	var/obj/abstract/Overlays/damage_overlay
 	var/image/oneway_overlay
+	var/image/oneway_self_overlay	//the image of itself that gets placed above the oneway_overlay
 	var/cracked_base = "crack"
 
 	var/fire_temp_threshold = 800
@@ -44,6 +47,11 @@
 	update_nearby_icons()
 	update_icon()
 	oneway_overlay = image('icons/obj/structures.dmi', src, "one_way_overlay")
+	if(one_way)
+		if(!one_way_windows)
+			one_way_windows = list()
+		one_way_windows.Add(src)
+		overlays += oneway_overlay
 
 /obj/structure/window/projectile_check()
 	return PROJREACT_WINDOWS
@@ -161,7 +169,7 @@
 				return !density
 		else if(mover.dir == dir) //Or are we using move code
 			if(density)
-				mover.Bump(src)
+				mover.to_bump(src)
 			return !density
 	return 1
 
@@ -281,11 +289,15 @@
 			return
 
 	if(iscrowbar(W) && one_way)
-		to_chat(user, "<span class='notice'>You pry the sheet of plastic off the window.</span>")
-		one_way = 0
-		getFromPool(/obj/item/stack/sheet/mineral/plastic, get_turf(user), 1)
-		overlays -= oneway_overlay
-		return
+		if(!is_fulltile() && get_turf(user) != get_turf(src))
+			to_chat(user, "<span class='warning'>You can't pry the sheet of plastic off from this side of \the [src]!</span>")
+		else
+			to_chat(user, "<span class='notice'>You pry the sheet of plastic off \the [src].</span>")
+			one_way = 0
+			one_way_windows.Remove(src)
+			getFromPool(/obj/item/stack/sheet/mineral/plastic, get_turf(user), 1)
+			overlays -= oneway_overlay
+			return
 
 	if(istype(W, /obj/item/stack/sheet/mineral/plastic))
 		if(one_way)
@@ -293,13 +305,11 @@
 			return
 		var/obj/item/stack/sheet/mineral/plastic/P = W
 		one_way = 1
+		if(!one_way_windows)
+			one_way_windows = list()
+		one_way_windows.Add(src)
 		P.use(1)
 		to_chat(user, "<span class='notice'>You place a sheet of plastic over the window.</span>")
-//		if(!oneway_overlay)
-//			oneway_overlay = new(src)
-//			oneway_overlay.icon = icon('icons/obj/structures.dmi')
-//			oneway_overlay.dir = src.dir
-//			oneway_overlay.icon_state = "one_way_overlay"
 		overlays += oneway_overlay
 		return
 
@@ -482,6 +492,8 @@
 		if(loc)
 			playsound(get_turf(src), "shatter", 70, 1)
 		spawnBrokenPieces()
+	if(one_way)
+		one_way_windows.Remove(src)
 	..()
 
 /obj/structure/window/proc/spawnBrokenPieces()
@@ -496,18 +508,18 @@
 	dir = ini_dir
 	update_nearby_tiles()
 
-//This proc has to do with airgroups and atmos, it has nothing to do with smoothwindows, that's update_nearby_tiles().
+//This proc has to do with airgroups and atmos, it has nothing to do with smoothwindows, that's update_nearby_icons().
 /obj/structure/window/proc/update_nearby_tiles(var/turf/T)
 
 
-	if(isnull(air_master))
+	if(!SS_READY(SSair))
 		return 0
 
 	if(!T)
 		T = get_turf(src)
 
 	if(isturf(T))
-		air_master.mark_for_update(T)
+		SSair.mark_for_update(T)
 
 	return 1
 

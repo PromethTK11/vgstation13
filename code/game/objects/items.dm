@@ -36,6 +36,7 @@
 
 	var/canremove = 1 //Mostly for Ninja code at this point but basically will not allow the item to be removed if set to 0. /N
 	var/cant_drop = 0 //If 1, can't drop it from hands!
+	var/cant_drop_msg = " sticks to your hand!"
 
 	var/armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 
@@ -56,6 +57,9 @@
 
 	var/vending_cat = null// subcategory for vending machines.
 	var/list/dynamic_overlay[0] //For items which need to slightly alter their on-mob appearance while being worn.
+	var/restraint_resist_time = 0	//When set, allows the item to be applied as restraints, which take this amount of time to resist out of
+	var/restraint_apply_time = 3 SECONDS
+	var/restraint_apply_sound = null
 
 /obj/item/proc/return_thermal_protection()
 	return return_cover_protection(body_parts_covered) * (1 - src.heat_conductivity)
@@ -174,8 +178,10 @@
 	else
 		pronoun = "It is"
 	..(user, " [pronoun] a [size] item.")
+	if(price && price > 0)
+		to_chat(user, "You read '[price] space bucks' on the tag.")
 	if((cant_drop > 0) && user.is_holding_item(src)) //Item can't be dropped, and is either in left or right hand!
-		user << "<span class='danger'>It's stuck to your hands!</span>"
+		to_chat(user, "<span class='danger'>It's stuck to your hands!</span>")
 
 
 /obj/item/attack_ai(mob/user as mob)
@@ -315,7 +321,7 @@
 /obj/item/proc/equipped(var/mob/user, var/slot, hand_index = 0)
 	if(cant_drop) //Item can't be dropped
 		if(hand_index) //Item was equipped in a hand slot
-			to_chat(user, "<span class='notice'>\The [src] sticks to your hand!</span>")
+			to_chat(user, "<span class='notice'>\The [src][cant_drop_msg]</span>")
 	for(var/X in actions)
 		var/datum/action/A = X
 		if(item_action_slot_check(slot, user)) //some items only give their actions buttons when in a specific slot.
@@ -1127,3 +1133,72 @@ var/global/list/image/blood_overlays = list()
 
 	spawn(duration + 1)
 		hud_layerise()
+
+/obj/item/proc/restraint_apply_intent_check(mob/user)
+	if(user.a_intent == I_GRAB)
+		return 1
+
+/obj/item/proc/restraint_apply_check(mob/living/carbon/M, mob/user)
+	if(!istype(M))
+		return
+
+	if(!restraint_apply_intent_check(user))
+		return
+
+	if(!user.dexterity_check())
+		to_chat(usr, "<span class='warning'>You don't have the dexterity to do this!</span>")
+		return
+
+	if(M.handcuffed)
+		return
+
+	M.attack_log += text("\[[time_stamp()]] <span style='color: orange'>Has been restrained (attempt) by [user.name] ([user.ckey]) with \the [src].</span>")
+	user.attack_log += text("\[[time_stamp()]] <span style='color: red'>Attempted to restrain [M.name] ([M.ckey]) with \the [src].</span>")
+	if(!iscarbon(user))
+		M.LAssailant = null
+	else
+		M.LAssailant = user
+
+	log_attack("[user.name] ([user.ckey]) Attempted to restrain [M.name] ([M.ckey]) with \the [src].")
+	return 1
+
+/obj/item/proc/attempt_apply_restraints(mob/living/carbon/C, mob/user)
+	if(!istype(C)) //Sanity doesn't hurt, right ?
+		return FALSE
+
+	if(ishuman(C))
+		var/mob/living/carbon/human/H = C
+		if (!H.has_organ_for_slot(slot_handcuffed))
+			to_chat(user, "<span class='danger'>\The [C] needs at least two wrists before you can cuff them together!</span>")
+			return
+
+	if(restraint_apply_sound)
+		playsound(get_turf(src), restraint_apply_sound, 30, 1, -2)
+	user.visible_message("<span class='danger'>[user] is trying to restrain \the [C] with \the [src]!</span>",
+						 "<span class='danger'>You try to restrain \the [C] with \the [src]!</span>")
+
+	if(do_after(user, C, restraint_apply_time))
+		feedback_add_details("handcuffs", "[name]")
+
+		if(clumsy_check(user) && prob(50))
+			to_chat(user, "<span class='warning'>Uh... how is this done?!</span>")
+			C = user
+
+		user.visible_message("<span class='danger'>\The [user] has restrained \the [C] with \the [src]!</span>")
+		user.attack_log += text("\[[time_stamp()]\] <font color='red'>Has restrained [C.name] ([C.ckey]) with \the [src].</font>")
+		C.attack_log += text("\[[time_stamp()]\] <font color='red'>Restrained with \the [src] by [user.name] ([user.ckey])</font>")
+		log_attack("[user.name] ([user.ckey]) has restrained [C.name] ([C.ckey]) with \the [src]")
+
+		var/obj/item/cuffs = src
+		if(istype(src, /obj/item/weapon/handcuffs/cyborg)) //There's GOT to be a better way to check for this.
+			cuffs = new /obj/item/weapon/handcuffs/cyborg(get_turf(user))
+		else
+			user.drop_from_inventory(cuffs)
+		C.equip_to_slot(cuffs, slot_handcuffed)
+		cuffs.on_restraint_apply(C)
+
+/obj/item/proc/on_restraint_removal(var/mob/living/carbon/C) //Needed for syndicuffs
+	return
+
+/obj/item/proc/on_restraint_apply(var/mob/living/carbon/C)
+	return

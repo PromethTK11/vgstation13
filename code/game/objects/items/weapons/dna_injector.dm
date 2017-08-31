@@ -96,7 +96,8 @@
 		uses--
 	else
 		if(istype(M,/mob/living))
-			M.radiation += rand(1,10)
+			var/mob/living/L = M
+			L.apply_radiation(rand(1,10), RAD_INTERNAL)
 
 		if(!(M_NOCLONE in M.mutations)) // prevents drained people from having their DNA changed
 			// UI in syringe.
@@ -105,6 +106,7 @@
 					M.UpdateAppearance(buf.dna.UI.Copy())
 					if (buf.types & DNA2_BUF_UE) //unique enzymes? yes
 						M.real_name = buf.dna.real_name
+						M.flavor_text = buf.dna.flavor_text
 						M.name = buf.dna.real_name
 					uses--
 				else

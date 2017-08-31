@@ -103,7 +103,7 @@
 
 /datum/theft_objective/traitor/blueprints
 	name = "the station blueprints"
-	typepath = /obj/item/blueprints
+	typepath = /obj/item/blueprints/primary
 	protected_jobs = list("Chief Engineer")
 
 /datum/theft_objective/traitor/voidsuit

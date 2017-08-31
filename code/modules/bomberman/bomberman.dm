@@ -182,7 +182,7 @@ var/global/list/bombermangear = list()
 
 
 
-/obj/structure/bomberman/Bump(atom/obstacle)
+/obj/structure/bomberman/to_bump(atom/obstacle)
 	kicked = 0
 	..()
 
@@ -341,7 +341,7 @@ obj/structure/bomberflame/Destroy()
 		new /obj/structure/bomberflame(get_turf(src),0,fuel-1,dir,destroy_environnement,hurt_players)
 
 
-/obj/structure/bomberflame/Bump(atom/obstacle)	//if an explosion reaches a bomb, it detonates
+/obj/structure/bomberflame/to_bump(atom/obstacle)	//if an explosion reaches a bomb, it detonates
 	if(istype(obstacle, /obj/structure/bomberman/))
 		var/obj/structure/bomberman/chained_explosion = obstacle
 		chained_explosion.detonate()
@@ -1008,6 +1008,7 @@ var/global/list/arena_spawnpoints = list()//used by /mob/dead/observer/Logout()
 	B.destroy_environnement = 0
 	M.equip_to_slot_or_del(B, slot_s_store)
 	bombsuit.slowdown = HARDSUIT_SLOWDOWN_LOW
+	M.mind.special_role = BOMBERMAN
 	for(var/obj/item/clothing/C in M)
 		C.canremove = 0
 		if(violence)
@@ -1143,7 +1144,7 @@ var/global/list/arena_spawnpoints = list()//used by /mob/dead/observer/Logout()
 	for(var/obj/item/clothing/C in arena)
 		qdel(C)
 
-	for(var/obj/item/weapon/organ/O in arena)//gibs
+	for(var/obj/item/organ/external/O in arena)//gibs
 		qdel(O)
 
 	for(var/mob/living/M in gladiators)
@@ -1235,7 +1236,7 @@ var/global/list/arena_spawnpoints = list()//used by /mob/dead/observer/Logout()
 			qdel(M)	//qdel doesn't work nicely with mobs
 	gladiators = list()
 
-	for(var/obj/item/weapon/organ/O in arena)//gibs
+	for(var/obj/item/organ/external/O in arena)//gibs
 		qdel(O)
 
 	for(var/obj/effect/decal/cleanable/C in arena)
